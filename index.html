@@ -3,65 +3,75 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Родинне дерево</title>
+    <title>Сімейне дерево</title>
     <style>
       :root {
-        --bg: #f3fbff;
-        --leaf: #b7e08c;
-        --leaf2: #8fcf66;
-        --trunk: #8b5a2b;
+        --bg: #eef5fb;
+        --card: #ffffff;
         --ring: #ffffff;
-        --line: #6ea64a;
-        --text: #0f172a;
-        --muted: #475569;
-        --node-size: 128px; /* змінюй розмір кружечків тут */
+        --line: #dbe3ea;
+        --title: #0f172a;
+        --muted: #64748b;
+        --node-size: 128px; /* базовий розмір кружечка */
       }
+
       html,
       body {
         margin: 0;
         background: var(--bg);
-        color: var(--text);
-        font-family: system-ui, Segoe UI, Inter, Roboto, Arial;
-      }
-      h1 {
-        margin: 14px 0;
-        text-align: center;
-        font-weight: 900;
-      }
-      .paper {
-        max-width: 1100px;
-        margin: 0 auto;
-        padding: 10px;
+        color: #111;
+        font-family: system-ui, -apple-system, Segoe UI, Inter, Roboto, Arial;
       }
 
-      /* Поле з деревом */
-      .tree-wrap {
+      .wrap {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 18px;
+      }
+      h1 {
+        margin: 4px 0 14px;
+        font-weight: 1000;
+        letter-spacing: 0.3px;
+        color: var(--title);
+        text-align: center;
+      }
+      .card {
+        position: relative;
+        border: 1px solid var(--line);
+        background: var(--card);
+        border-radius: 18px;
+        padding: 14px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06) inset;
+        overflow: hidden;
+      }
+
+      /* --- фон-дерево (SVG) --- */
+      .tree {
         position: relative;
         width: 100%;
-        aspect-ratio: 16/10; /* тримає пропорції */
-        border-radius: 16px;
-        background: linear-gradient(#e9f7ff, #ffffff 40%, #d7f0d0);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) inset;
+        aspect-ratio: 16/10;
+        border-radius: 12px;
         overflow: hidden;
-        border: 1px solid #c9e1c1;
       }
-      /* SVG дерево (фон) */
-      svg.tree {
+      .tree svg {
         position: absolute;
         inset: 0;
         width: 100%;
         height: 100%;
       }
 
-      /* Кружечки з фото */
+      /* --- вузли (кружечки) — мобільно-дружні --- */
       .node {
         position: absolute;
         width: var(--node-size);
         height: var(--node-size);
+        left: var(--x, 50%);
+        top: var(--y, 50%);
+        transform: translate(-50%, -50%); /* центруємо по координаті */
         border-radius: 50%;
         background: #ddd center/cover no-repeat;
         border: 6px solid var(--ring);
-        box-shadow: 0 10px 26px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 10px 26px rgba(0, 0, 0, 0.18);
         display: flex;
         align-items: flex-end;
         justify-content: center;
@@ -69,19 +79,20 @@
         transition: transform 0.12s ease;
       }
       .node:hover {
-        transform: scale(1.03);
+        transform: translate(-50%, -50%) scale(1.03);
       }
       .node .label {
-        background: rgba(255, 255, 255, 0.9);
-        color: #111;
-        font-weight: 800;
-        font-size: 14px;
-        padding: 4px 8px;
+        background: rgba(255, 255, 255, 0.94);
+        color: #0f172a;
+        font-weight: 900;
+        padding: 4px 10px;
         margin-bottom: 6px;
         border-radius: 999px;
         border: 1px solid #e5e7eb;
+        max-width: 92%;
+        text-align: center;
+        font-size: 14px;
       }
-      /* маленький підпис під кружечком */
       .node .sub {
         position: absolute;
         top: 100%;
@@ -89,216 +100,224 @@
         transform: translateX(-50%);
         margin-top: 6px;
         font-size: 13px;
-        color: var(--muted);
+        color: #64748b;
         text-align: center;
         width: 180px;
       }
 
-      /* Розташування 4 осіб (адаптивні проценти) */
-      /* Батьки вище, діти нижче */
+      /* --- позиції (у відсотках, стабільно на будь-якому екрані) --- */
       .denys {
-        left: 32%;
-        top: 20%;
+        --x: 28%;
+        --y: 30%;
       }
       .olga {
-        left: 58%;
-        top: 20%;
+        --x: 72%;
+        --y: 30%;
       }
       .anton {
-        left: 38%;
-        top: 58%;
+        --x: 35%;
+        --y: 72%;
       }
       .artem {
-        left: 52%;
-        top: 62%;
+        --x: 65%;
+        --y: 74%;
       }
 
-      /* друк */
-      @media print {
-        body {
-          background: #fff;
-        }
-        h1 {
-          margin: 0 0 6px;
-        }
-        .paper {
-          padding: 0;
-        }
-        @page {
-          size: A4 landscape;
-          margin: 10mm;
+      /* --- адаптив --- */
+      @media (max-width: 900px) {
+        :root {
+          --node-size: 110px;
         }
       }
+      @media (max-width: 600px) {
+        :root {
+          --node-size: 92px;
+        }
+        .anton {
+          --y: 76%;
+        }
+        .artem {
+          --y: 78%;
+        }
+      }
+      @media (max-width: 420px) {
+        :root {
+          --node-size: 82px;
+        }
+        .node .sub {
+          display: none;
+        } /* щоб підписи не з’їжджали на дуже вузьких екранах */
+      }
 
-      /* підказка внизу */
-      .hint {
-        margin-top: 10px;
+      footer {
+        margin: 14px 0;
         text-align: center;
-        color: #64748b;
-        font-size: 13px;
+        color: var(--muted);
       }
     </style>
   </head>
   <body>
-    <div class="paper">
-      <h1>Сiмейне дерево</h1>
+    <div class="wrap">
+      <h1>Сімейне дерево</h1>
 
-      <div class="tree-wrap" id="tree">
-        <!-- ФОН: дерево (SVG) -->
-        <svg class="tree" viewBox="0 0 1600 1000" aria-hidden="true">
-          <!-- крона -->
-          <defs>
-            <radialGradient id="leafGrad" cx="50%" cy="45%" r="60%">
-              <stop offset="0%" stop-color="#c7f0a7" />
-              <stop offset="60%" stop-color="#a7df7a" />
-              <stop offset="100%" stop-color="#7ec658" />
-            </radialGradient>
-          </defs>
-          <ellipse cx="800" cy="380" rx="560" ry="340" fill="url(#leafGrad)" />
-          <ellipse
-            cx="520"
-            cy="340"
-            rx="260"
-            ry="210"
-            fill="url(#leafGrad)"
-            opacity=".9"
-          />
-          <ellipse
-            cx="1080"
-            cy="340"
-            rx="260"
-            ry="210"
-            fill="url(#leafGrad)"
-            opacity=".9"
-          />
+      <div class="card">
+        <div class="tree" id="tree">
+          <!-- ФОН: дерево -->
+          <svg viewBox="0 0 1600 1000" aria-hidden="true">
+            <!-- крона -->
+            <defs>
+              <radialGradient id="leafGrad" cx="50%" cy="45%" r="60%">
+                <stop offset="0%" stop-color="#c7f0a7" />
+                <stop offset="60%" stop-color="#a7df7a" />
+                <stop offset="100%" stop-color="#7ec658" />
+              </radialGradient>
+            </defs>
+            <ellipse
+              cx="800"
+              cy="380"
+              rx="560"
+              ry="340"
+              fill="url(#leafGrad)"
+            />
+            <ellipse
+              cx="520"
+              cy="340"
+              rx="260"
+              ry="210"
+              fill="url(#leafGrad)"
+              opacity=".9"
+            />
+            <ellipse
+              cx="1080"
+              cy="340"
+              rx="260"
+              ry="210"
+              fill="url(#leafGrad)"
+              opacity=".9"
+            />
 
-          <!-- стовбур -->
-          <path
-            d="M780 960 C 760 820, 740 650, 770 560
-                 C 820 430, 840 430, 880 560
-                 C 910 650, 900 820, 880 960 Z"
-            fill="#8b5a2b"
-            stroke="#6f421c"
-            stroke-width="6"
-          />
+            <!-- стовбур -->
+            <path
+              d="M780 960 C 760 820, 740 650, 770 560
+                   C 820 430, 840 430, 880 560
+                   C 910 650, 900 820, 880 960 Z"
+              fill="#8b5a2b"
+              stroke="#6f421c"
+              stroke-width="6"
+            />
 
-          <!-- гілки під батьків -->
-          <path
-            d="M800 560 C 760 520, 660 420, 520 360"
-            fill="none"
-            stroke="#683b14"
-            stroke-width="16"
-            stroke-linecap="round"
-          />
-          <path
-            d="M800 560 C 840 520, 940 420, 1080 360"
-            fill="none"
-            stroke="#683b14"
-            stroke-width="16"
-            stroke-linecap="round"
-          />
-          <!-- гілки до дітей -->
-          <path
-            d="M800 640 C 720 660, 660 700, 600 760"
-            fill="none"
-            stroke="#683b14"
-            stroke-width="16"
-            stroke-linecap="round"
-          />
-          <path
-            d="M800 640 C 880 660, 940 710, 1000 780"
-            fill="none"
-            stroke="#683b14"
-            stroke-width="16"
-            stroke-linecap="round"
-          />
+            <!-- гілки -->
+            <path
+              d="M800 560 C 760 520, 660 420, 520 360"
+              fill="none"
+              stroke="#683b14"
+              stroke-width="16"
+              stroke-linecap="round"
+            />
+            <path
+              d="M800 560 C 840 520, 940 420, 1080 360"
+              fill="none"
+              stroke="#683b14"
+              stroke-width="16"
+              stroke-linecap="round"
+            />
+            <path
+              d="M800 640 C 720 660, 660 700, 600 760"
+              fill="none"
+              stroke="#683b14"
+              stroke-width="16"
+              stroke-linecap="round"
+            />
+            <path
+              d="M800 640 C 880 660, 940 710, 1000 780"
+              fill="none"
+              stroke="#683b14"
+              stroke-width="16"
+              stroke-linecap="round"
+            />
 
-          <!-- тонкі зелені лінії поверх гілок -->
-          <path
-            d="M800 560 C 750 520, 650 425, 520 365"
-            fill="none"
-            stroke="#9bd97b"
-            stroke-width="4"
-            stroke-linecap="round"
-          />
-          <path
-            d="M800 560 C 850 520, 950 425, 1080 365"
-            fill="none"
-            stroke="#9bd97b"
-            stroke-width="4"
-            stroke-linecap="round"
-          />
-          <path
-            d="M800 640 C 720 660, 660 700, 600 760"
-            fill="none"
-            stroke="#9bd97b"
-            stroke-width="4"
-            stroke-linecap="round"
-          />
-          <path
-            d="M800 640 C 880 660, 940 710, 1000 780"
-            fill="none"
-            stroke="#9bd97b"
-            stroke-width="4"
-            stroke-linecap="round"
-          />
-        </svg>
+            <!-- тонкий зелений блік -->
+            <path
+              d="M800 560 C 750 520, 650 425, 520 365"
+              fill="none"
+              stroke="#9bd97b"
+              stroke-width="4"
+              stroke-linecap="round"
+            />
+            <path
+              d="M800 560 C 850 520, 950 425, 1080 365"
+              fill="none"
+              stroke="#9bd97b"
+              stroke-width="4"
+              stroke-linecap="round"
+            />
+            <path
+              d="M800 640 C 720 660, 660 700, 600 760"
+              fill="none"
+              stroke="#9bd97b"
+              stroke-width="4"
+              stroke-linecap="round"
+            />
+            <path
+              d="M800 640 C 880 660, 940 710, 1000 780"
+              fill="none"
+              stroke="#9bd97b"
+              stroke-width="4"
+              stroke-linecap="round"
+            />
+          </svg>
 
-        <!-- ВУЗЛИ (кружечки). Постав свої фото/підписи -->
-        <div
-          class="node denys"
-          style="background-image: url('denis.jpg')"
-          data-name="Денис"
-          data-role="Тато"
-          data-desc="👨‍🦱 Денис — Тато
+          <!-- ВУЗЛИ: підстав свої фото у background-image -->
+          <div
+            class="node denys"
+            style="background-image: url('denis.jpg')"
+            data-name="Денис"
+            data-role="Тато"
+            data-desc="Денис — наш головний шофер сімейного автоконвою 🚛. Професійний водій автовоза, який може доставити хоч десять машин одразу — і ще й встигнути подзвонити додому, чи всі поїли. Людина, яка знає дороги краще, ніж Google Maps, і не визнає навігаторів, бо «я і так знаю». Сила, спокій і впевненість нашої родини."
+          >
+            <div class="label">Тато Денис</div>
+            <div class="sub">1988–…</div>
+          </div>
 
-наш головний шофер сімейного автоконвою 🚛. Професійний водій автовоза, який може доставити хоч десять машин одразу — і ще й встигнути подзвонити додому, чи всі поїли. Людина, яка знає дороги краще, ніж Google Maps, і не визнає навігаторів, бо «я і так знаю». Сила, спокій і впевненість нашої родини."
-        >
-          <div class="label">Тато Денис</div>
-          <div class="sub">1988–…</div>
-        </div>
+          <div
+            class="node olga"
+            style="background-image: url('olga.jpg')"
+            data-name="Ольга"
+            data-role="Мама"
+            data-desc="Ольга — колишній учитель, а значить з людьми вона вміє все: пояснити, заспокоїти, похвалити… і при потребі — організувати дисципліну краще, ніж будь-який поліцейський жезл 🚦. Мама, яка тримає порядок, тепло і рівновагу в домі. Каже, що вже не викладає — але по факту всі вдома все одно під контролем."
+          >
+            <div class="label">Мама Ольга</div>
+            <div class="sub">1983–…</div>
+          </div>
 
-        <div
-          class="node olga"
-          style="background-image: url('olga.jpg')"
-          data-name="Ольга"
-          data-role="Мама"
-          data-desc="👩‍🏫 Ольга — Мама
+          <div
+            class="node anton"
+            style="background-image: url('anton14.jpg')"
+            data-name="Антон"
+            data-role="Я"
+            data-desc="Антон — молодий розробник, який уже розмовляє з комп’ютером мовами JavaScript, CSS, HTML, Python і ще парою, про які родина навіть не чула. Інколи не відповідає на «Антоооон!» не тому що не чує — а тому що в коді важливо не відволікатися. Ходить з ноутбуком, як інші ходять з телефоном — має великі айтішні плани."
+          >
+            <div class="label">Антон</div>
+            <div class="sub">2011–… • старший</div>
+          </div>
 
- колишній учитель, а значить з людьми вона вміє все: пояснити, заспокоїти, похвалити… і при потребі — організувати дисципліну краще, ніж будь-який поліцейський жезл 🚦. Мама, яка тримає порядок, тепло і рівновагу в домі. Каже, що вже не викладає — але по факту всі вдома все одно під контролем."
-        >
-          <div class="label">Мама Ольга</div>
-          <div class="sub">1983–…</div>
-        </div>
-
-        <div
-          class="node anton"
-          style="background-image: url('anton14.jpg')"
-          data-name="Антон"
-          data-role="Я"
-          data-desc="💻 Антон — молодий розробник, який уже розмовляє з комп’ютером мовами JavaScript, CSS, HTML, Python і ще парою, про які родина навіть не чула. Інколи не відповідає на «Антоооон!» не тому що не чує — а тому що в коді важливо не відволікатися. Ходить з ноутбуком, як інші ходять з телефоном — має великі айтішні плани."
-        >
-          <div class="label">Антон</div>
-          <div class="sub">2011–… • старший</div>
-        </div>
-
-        <div
-          class="node artem"
-          style="background-image: url('artem.jpg')"
-          data-name="Артем"
-          data-role="Брат молодший"
-          data-desc="🎮 Артем -
- генератор енергії нашої родини ⚡. Учень 4-го класу, професіонал з ігор, мультиків і веселого хаосу. Якщо Антон працює з кодом, то Артем працює з хорошим настроєм всієї сім’ї. Любить грати, жартувати, і має здатність запустити веселий дурдом будь-де і будь-коли."
-        >
-          <div class="label">Артем</div>
-          <div class="sub">2016–… • молодший</div>
+          <div
+            class="node artem"
+            style="background-image: url('artem.jpg')"
+            data-name="Артем"
+            data-role="Брат менший"
+            data-desc="Артем — генератор енергії нашої родини ⚡. Учень 4-го класу, професіонал з ігор, мультиків і веселого хаосу. Якщо Антон працює з кодом, то Артем працює з хорошим настроєм всієї сім’ї. Любить грати, жартувати, і має здатність запустити веселий дурдом будь-де і будь-коли."
+          >
+            <div class="label">Артем</div>
+            <div class="sub">2016–… • молодший</div>
+          </div>
         </div>
       </div>
 
-      <div class="hint">Developer Anton Bondar</div>
+      <footer>Developer Anton Bondar</footer>
     </div>
 
-    <!-- Легке модальне вікно з описом (по кліку на кружечок) -->
+    <!-- просте модальне вікно для описів -->
     <div
       id="modal"
       style="
@@ -308,6 +327,7 @@
         align-items: center;
         justify-content: center;
         background: rgba(0, 0, 0, 0.45);
+        z-index: 50;
       "
     >
       <div
@@ -374,7 +394,7 @@
     </div>
 
     <script>
-      // відкривати опис по кліку
+      // відкриття опису по кліку
       const modal = document.getElementById("modal");
       const mPic = document.getElementById("mPic");
       const mName = document.getElementById("mName");
@@ -403,3 +423,4 @@
     </script>
   </body>
 </html>
+
